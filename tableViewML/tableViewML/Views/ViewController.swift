@@ -37,6 +37,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     // Configurar la vista de tabla
     func setupTableView() {
         tableView = UITableView(frame: view.bounds, style: .plain)
+        tableView.separatorStyle = .none
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
@@ -60,6 +61,13 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         // Configurar un temporizador para realizar la búsqueda después de un breve retraso
         timer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { [weak self] _ in
             self?.performSearch(searchText)
+        }
+        if searchText.isEmpty {
+            // Si el texto de búsqueda está vacío, oculta las líneas de separación
+            tableView.separatorStyle = .none
+        } else {
+            // Si hay texto de búsqueda, muestra las líneas de separación
+            tableView.separatorStyle = .singleLine
         }
     }
     
@@ -107,6 +115,12 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         
         // Configurar el texto de la celda con el título del producto
         cell.textLabel?.text = product.title
+        
+        // Ajustar el tamaño del texto
+        cell.textLabel?.font = UIFont.systemFont(ofSize: 12) // Tamaño de fuente
+        
+        // Configurar el número de líneas del texto
+        cell.textLabel?.numberOfLines = 2 // Mostrar el texto en dos líneas
         
         // Ajustar la propiedad contentMode para hacer que la imagen se ajuste al tamaño de la celda
         cell.imageView?.contentMode = .scaleAspectFill
