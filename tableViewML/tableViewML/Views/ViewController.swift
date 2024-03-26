@@ -51,6 +51,9 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         setupSearchBar()
         setupPlaceholderLabel()
         showPlaceholderIfNeeded() // Agregar esta línea para mostrar el marcador de posición inicialmente
+        
+        // Eliminar el texto predeterminado del botón de retroceso
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
     }
     
     // Configurar la vista de tabla
@@ -69,7 +72,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         searchBar.delegate = self
         searchBar.placeholder = "Buscar"
         searchBar.sizeToFit() // Ajustar al tamaño del contenido
-        tableView.tableHeaderView = searchBar
+        view.addSubview(searchBar) // Agregar la barra de búsqueda como subvista de la vista principal
     }
     
     // Configurar la etiqueta de marcador de posición
