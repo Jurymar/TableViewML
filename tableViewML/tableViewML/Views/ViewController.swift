@@ -4,12 +4,18 @@
 //
 //  Created by Jurymar Colmenares on 25/03/24.
 //
+// Importación del framework UIKit, que proporciona las clases y funciones para crear interfaces de usuario en iOS
 import UIKit
 
 // Estructura que representa un producto
 struct Product: Decodable {
     let title: String      // Título del producto
-    let thumbnail: String  // URL de la miniatura del producto
+    let img: String// URL de la miniatura del producto
+    
+    private enum CodingKeys: String, CodingKey {
+        case title
+        case img = "thumbnail"
+    }
 }
 
 // Estructura que representa la respuesta de búsqueda de la API
@@ -21,10 +27,21 @@ struct SearchResponse: Decodable {
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
     
     // Propiedades de la clase
-    var tableView: UITableView!  // Vista de tabla para mostrar los productos
-    var searchBar: UISearchBar!  // Barra de búsqueda para buscar productos
-    var products: [Product] = []  // Array que almacena los productos recuperados de la API
-    var timer: Timer?             // Temporizador para controlar la búsqueda
+    
+    // Vista de tabla para mostrar los productos
+    var tableView: UITableView!
+    
+    // Barra de búsqueda para buscar productos
+    var searchBar: UISearchBar!
+    
+    // Array que almacena los productos recuperados de la API
+    var products: [Product] = []
+    
+    // Temporizador para controlar la búsqueda
+    var timer: Timer?
+    
+    // Etiqueta para mostrar el texto de marcador de posición
+    var placeholderLabel: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,6 +49,8 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         // Configurar la tabla y la barra de búsqueda
         setupTableView()
         setupSearchBar()
+        setupPlaceholderLabel()
+        showPlaceholderIfNeeded() // Agregar esta línea para mostrar el marcador de posición inicialmente
     }
     
     // Configurar la vista de tabla
@@ -53,6 +72,25 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         tableView.tableHeaderView = searchBar
     }
     
+    // Configurar la etiqueta de marcador de posición
+    func setupPlaceholderLabel() {
+        placeholderLabel = UILabel(frame: CGRect(x: 0, y: 0, width: tableView.bounds.width, height: tableView.bounds.height))
+        placeholderLabel.text = "Realiza una búsqueda para ver           los productos"
+        placeholderLabel.textAlignment = .center
+        placeholderLabel.numberOfLines = 2 // Establecer el número de líneas en 2
+        tableView.backgroundView = placeholderLabel
+        placeholderLabel.isHidden = true
+    }
+    
+    // Método para mostrar el marcador de posición si no hay productos
+    func showPlaceholderIfNeeded() {
+        if products.isEmpty {
+            placeholderLabel.isHidden = false
+        } else {
+            placeholderLabel.isHidden = true
+        }
+    }
+    
     // Realizar la búsqueda cuando cambia el texto en la barra de búsqueda
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         // Reiniciar el temporizador
@@ -65,6 +103,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         if searchText.isEmpty {
             // Si el texto de búsqueda está vacío, oculta las líneas de separación
             tableView.separatorStyle = .none
+            placeholderLabel.isHidden = true
         } else {
             // Si hay texto de búsqueda, muestra las líneas de separación
             tableView.separatorStyle = .singleLine
@@ -96,6 +135,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
                 DispatchQueue.main.async {
                     self?.products = searchResponse.results
                     self?.tableView.reloadData()
+                    self?.placeholderLabel.isHidden = !searchResponse.results.isEmpty
                 }
             } catch {
                 print("Error al procesar los datos:", error.localizedDescription)
@@ -127,7 +167,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         cell.imageView?.clipsToBounds = true
         
         // Cargar la miniatura del producto de forma asíncrona si está disponible
-        if let imageURL = URL(string: product.thumbnail),
+        if let imageURL = URL(string: product.img),
            let imageData = try? Data(contentsOf: imageURL),
            let image = UIImage(data: imageData) {
             cell.imageView?.image = image
@@ -135,8 +175,21 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         
         return cell
     }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let product = products[indexPath.row]
+        
+        // Crear una instancia del controlador de vista de detalles y pasar los datos del producto
+        let detailViewController = ProductDetailViewController()
+        detailViewController.product = product
+        
+        // Realizar la navegación
+        show(detailViewController, sender: nil)
+    }
+
+    // Método del protocolo UITableViewDelegate para establecer la altura de las celdas
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        // devolver la altura deseada para la celda
-        return 120 // altura a 120 puntos
+        // Devolver la altura deseada para la celda
+        return 120 // Altura a 120 puntos
     }
 }
