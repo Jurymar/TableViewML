@@ -10,7 +10,7 @@ import UIKit
 // Estructura que representa un producto
 struct Product: Decodable {
     let title: String      // Título del producto
-    let img: String// URL de la miniatura del producto
+    let img: String        // URL de la miniatura del producto
     
     private enum CodingKeys: String, CodingKey {
         case title
@@ -23,7 +23,6 @@ struct SearchResponse: Decodable {
     let results: [Product]  // Array de productos
 }
 
-// Clase principal del controlador de vista
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
     
     // Propiedades de la clase
@@ -46,13 +45,53 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Configurar la tabla y la barra de búsqueda
-        setupTableView()
-        setupSearchBar()
-        setupPlaceholderLabel()
-        showPlaceholderIfNeeded() // Agregar esta línea para mostrar el marcador de posición inicialmente
+        // Configurar la barra de búsqueda
+        searchBar = UISearchBar()
+        searchBar.delegate = self
+        searchBar.placeholder = "Buscar"
+        searchBar.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(searchBar)
         
-        // Eliminar el texto predeterminado del botón de retroceso
+        // Configurar la tabla
+        tableView = UITableView()
+        tableView.separatorStyle = .none
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(tableView)
+        
+        // Configurar el marcador de posición
+        placeholderLabel = UILabel()
+        placeholderLabel.text = "Realiza una búsqueda para ver los productos"
+        placeholderLabel.textAlignment = .center
+        placeholderLabel.numberOfLines = 2
+        placeholderLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(placeholderLabel)
+        
+        // Configurar constraints para la barra de búsqueda
+        NSLayoutConstraint.activate([
+            searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+        
+        // Configurar constraints para la tabla
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        ])
+        
+        // Configurar constraints para el marcador de posición
+        NSLayoutConstraint.activate([
+            placeholderLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            placeholderLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            placeholderLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
+        ])
+        
+        // Eliminar el texto predeterminado del botón de retroceso en la barra de navegación
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
     }
     
@@ -72,7 +111,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         searchBar.delegate = self
         searchBar.placeholder = "Buscar"
         searchBar.sizeToFit() // Ajustar al tamaño del contenido
-        view.addSubview(searchBar) // Agregar la barra de búsqueda como subvista de la vista principal
+        tableView.tableHeaderView = searchBar // Agregar la barra de búsqueda como subvista de la vista principal
     }
     
     // Configurar la etiqueta de marcador de posición
