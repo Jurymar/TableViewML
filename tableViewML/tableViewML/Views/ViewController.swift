@@ -4,41 +4,66 @@
 //
 //  Created by Jurymar Colmenares on 25/03/24.
 //
-
 import UIKit
 
-class ViewController: UIViewController, UITableViewDataSource, UISearchBarDelegate {
+// Estructura que representa un producto
+struct Product: Decodable {
+    let title: String      // Título del producto
+    let thumbnail: String  // URL de la miniatura del producto
+}
+
+// Estructura que representa la respuesta de búsqueda de la API
+struct SearchResponse: Decodable {
+    let results: [Product]  // Array de productos
+}
+
+// Clase principal del controlador de vista
+class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
     
-    let tableView = UITableView()
-    let searchBar = UISearchBar()
-    var products: [String] = []
-    var timer: Timer?
+    // Propiedades de la clase
+    var tableView: UITableView!  // Vista de tabla para mostrar los productos
+    var searchBar: UISearchBar!  // Barra de búsqueda para buscar productos
+    var products: [Product] = []  // Array que almacena los productos recuperados de la API
+    var timer: Timer?             // Temporizador para controlar la búsqueda
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Configurar la tabla
-        tableView.frame = view.bounds
+        // Configurar la tabla y la barra de búsqueda
+        setupTableView()
+        setupSearchBar()
+    }
+    
+    // Configurar la vista de tabla
+    func setupTableView() {
+        tableView = UITableView(frame: view.bounds, style: .plain)
         tableView.dataSource = self
+        tableView.delegate = self
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         view.addSubview(tableView)
-        
-        // Configurar la barra de búsqueda
-        searchBar.frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 50)
+    }
+    
+    // Configurar la barra de búsqueda
+    func setupSearchBar() {
+        searchBar = UISearchBar()
         searchBar.delegate = self
         searchBar.placeholder = "Buscar"
+        searchBar.sizeToFit() // Ajustar al tamaño del contenido
         tableView.tableHeaderView = searchBar
     }
     
+    // Realizar la búsqueda cuando cambia el texto en la barra de búsqueda
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        // Reiniciar el temporizador cada vez que el usuario escribe en el searchBar
+        // Reiniciar el temporizador
         timer?.invalidate()
         
-        // Configurar un temporizador para que la búsqueda se realice después de 0.3 segundos de que el usuario haya dejado de escribir
+        // Configurar un temporizador para realizar la búsqueda después de un breve retraso
         timer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { [weak self] _ in
             self?.performSearch(searchText)
         }
     }
     
+    // Realizar la búsqueda utilizando la API de MercadoLibre
     func performSearch(_ searchTerm: String?) {
         guard let searchTerm = searchTerm?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             return
@@ -55,13 +80,14 @@ class ViewController: UIViewController, UITableViewDataSource, UISearchBarDelega
             }
             
             do {
-                let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-                if let results = json?["results"] as? [[String: Any]] {
-                    let titles = results.compactMap { $0["title"] as? String }
-                    DispatchQueue.main.async {
-                        self?.products = titles
-                        self?.tableView.reloadData()
-                    }
+                // Decodificar los datos de respuesta en objetos de tipo SearchResponse
+                let decoder = JSONDecoder()
+                let searchResponse = try decoder.decode(SearchResponse.self, from: data)
+                
+                // Actualizar la lista de productos y recargar la tabla en el hilo principal
+                DispatchQueue.main.async {
+                    self?.products = searchResponse.results
+                    self?.tableView.reloadData()
                 }
             } catch {
                 print("Error al procesar los datos:", error.localizedDescription)
@@ -69,13 +95,34 @@ class ViewController: UIViewController, UITableViewDataSource, UISearchBarDelega
         }.resume()
     }
     
+    // Métodos del protocolo UITableViewDataSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return products.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
-        cell.textLabel?.text = products[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+        
+        let product = products[indexPath.row]
+        
+        // Configurar el texto de la celda con el título del producto
+        cell.textLabel?.text = product.title
+        
+        // Ajustar la propiedad contentMode para hacer que la imagen se ajuste al tamaño de la celda
+        cell.imageView?.contentMode = .scaleAspectFill
+        cell.imageView?.clipsToBounds = true
+        
+        // Cargar la miniatura del producto de forma asíncrona si está disponible
+        if let imageURL = URL(string: product.thumbnail),
+           let imageData = try? Data(contentsOf: imageURL),
+           let image = UIImage(data: imageData) {
+            cell.imageView?.image = image
+        }
+        
         return cell
+    }
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        // devolver la altura deseada para la celda
+        return 120 // altura a 120 puntos
     }
 }
