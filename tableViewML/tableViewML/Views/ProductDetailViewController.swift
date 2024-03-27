@@ -60,11 +60,35 @@ class ProductDetailViewController: UIViewController {
         ])
         
         // Mostrar los detalles del producto
-        if let imageURL = URL(string: product.img),
-           let imageData = try? Data(contentsOf: imageURL),
-           let image = UIImage(data: imageData) {
-            productImageView.image = image
+        // Cargar la miniatura del producto de forma asíncrona si está disponible
+        if let imageURL = URL(string: product.img) {
+            let session = URLSession.shared
+            let task = session.dataTask(with: imageURL) { (data, response, error) in
+                // Check if there's an error
+                guard error == nil else {
+                    print("Error fetching image: \(error!.localizedDescription)")
+                    return
+                }
+                
+                // Check if data is received
+                guard let imageData = data else {
+                    print("No data received")
+                    return
+                }
+                
+                // Convert data to UIImage
+                if let image = UIImage(data: imageData) {
+                    // Update UI on the main thread
+                    DispatchQueue.main.async {
+                        self.productImageView.image = image
+                    }
+                } else {
+                    print("Unable to convert data to UIImage")
+                }
+            }
+            task.resume()
         }
+        
         titleLabel.text = product.title
     }
 }
