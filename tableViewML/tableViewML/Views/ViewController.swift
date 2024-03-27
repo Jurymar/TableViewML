@@ -209,12 +209,34 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         cell.imageView?.clipsToBounds = true
         
         // Cargar la miniatura del producto de forma asíncrona si está disponible
-        if let imageURL = URL(string: product.img),
-           let imageData = try? Data(contentsOf: imageURL),
-           let image = UIImage(data: imageData) {
-            cell.imageView?.image = image
+        if let imageURL = URL(string: product.img) {
+            let session = URLSession.shared
+            let task = session.dataTask(with: imageURL) { (data, response, error) in
+                // Check if there's an error
+                guard error == nil else {
+                    print("Error fetching image: \(error!.localizedDescription)")
+                    return
+                }
+                
+                // Check if data is received
+                guard let imageData = data else {
+                    print("No data received")
+                    return
+                }
+                
+                // Convert data to UIImage
+                if let image = UIImage(data: imageData) {
+                    // Update UI on the main thread
+                    DispatchQueue.main.async {
+                        cell.imageView?.image = image
+                    }
+                } else {
+                    print("Unable to convert data to UIImage")
+                }
+            }
+            task.resume()
         }
-        
+
         return cell
     }
     
