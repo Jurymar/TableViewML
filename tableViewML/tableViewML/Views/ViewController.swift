@@ -7,26 +7,9 @@
 // Importación del framework UIKit, que proporciona las clases y funciones para crear interfaces de usuario en iOS
 import UIKit
 
-// Estructura que representa un producto
-struct Product: Decodable {
-    let title: String      // Título del producto
-    let img: String        // URL de la miniatura del producto
-    
-    private enum CodingKeys: String, CodingKey {
-        case title
-        case img = "thumbnail"
-    }
-}
-
-// Estructura que representa la respuesta de búsqueda de la API
-struct SearchResponse: Decodable {
-    let results: [Product]  // Array de productos
-}
-
+// Clase principal del controlador de vista
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
-    
-    // Propiedades de la clase
-    
+        
     // Vista de tabla para mostrar los productos
     var tableView: UITableView!
     
@@ -42,8 +25,15 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     // Etiqueta para mostrar el texto de marcador de posición
     var placeholderLabel: UILabel!
     
+    // Método llamado después de que la vista cargue
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Establecer el título en la barra de navegación
+        self.title = "Bienvenido"
+        
+        // Opcional: Personalizar el color del título en la barra de navegación
+        self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
         
         // Configurar la barra de búsqueda
         searchBar = UISearchBar()
@@ -63,7 +53,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         
         // Configurar el marcador de posición
         placeholderLabel = UILabel()
-        placeholderLabel.text = "Realiza una búsqueda para ver los productos"
+        placeholderLabel.text = "Realiza una búsqueda para ver \nlos productos👆."
         placeholderLabel.textAlignment = .center
         placeholderLabel.numberOfLines = 2
         placeholderLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -95,7 +85,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
     }
     
-    // Configurar la vista de tabla
+    // Método para configurar la vista de tabla (no se utiliza actualmente)
     func setupTableView() {
         tableView = UITableView(frame: view.bounds, style: .plain)
         tableView.separatorStyle = .none
@@ -105,7 +95,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         view.addSubview(tableView)
     }
     
-    // Configurar la barra de búsqueda
+    // Método para configurar la barra de búsqueda (no se utiliza actualmente)
     func setupSearchBar() {
         searchBar = UISearchBar()
         searchBar.delegate = self
@@ -114,7 +104,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         tableView.tableHeaderView = searchBar // Agregar la barra de búsqueda como subvista de la vista principal
     }
     
-    // Configurar la etiqueta de marcador de posición
+    // Método para configurar la etiqueta de marcador de posición (no se utiliza actualmente)
     func setupPlaceholderLabel() {
         placeholderLabel = UILabel(frame: CGRect(x: 0, y: 0, width: tableView.bounds.width, height: tableView.bounds.height))
         placeholderLabel.text = "Realiza una búsqueda para ver           los productos"
@@ -124,7 +114,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         placeholderLabel.isHidden = true
     }
     
-    // Método para mostrar el marcador de posición si no hay productos
+    // Método para mostrar el marcador de posición si no hay productos (no se utiliza actualmente)
     func showPlaceholderIfNeeded() {
         if products.isEmpty {
             placeholderLabel.isHidden = false
@@ -133,7 +123,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         }
     }
     
-    // Realizar la búsqueda cuando cambia el texto en la barra de búsqueda
+    // Método llamado cuando cambia el texto en la barra de búsqueda
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         // Reiniciar el temporizador
         timer?.invalidate()
@@ -152,39 +142,24 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         }
     }
     
-    // Realizar la búsqueda utilizando la API de MercadoLibre
+    // Utilizar la API de MercadoLibre
     func performSearch(_ searchTerm: String?) {
-        guard let searchTerm = searchTerm?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
-            return
-        }
+        guard let searchTerm = searchTerm else { return }
         
-        guard let url = URL(string: "https://api.mercadolibre.com/sites/MLC/search?q=\(searchTerm)") else {
-            return
-        }
-        
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
-            guard let data = data, error == nil else {
-                print("Error al realizar la solicitud:", error?.localizedDescription ?? "Error desconocido")
-                return
-            }
-            
-            do {
-                // Decodificar los datos de respuesta en objetos de tipo SearchResponse
-                let decoder = JSONDecoder()
-                let searchResponse = try decoder.decode(SearchResponse.self, from: data)
-                
-                // Actualizar la lista de productos y recargar la tabla en el hilo principal
+        APIService.searchProducts(with: searchTerm) { [weak self] result in
+            switch result {
+            case .success(let products):
                 DispatchQueue.main.async {
-                    self?.products = searchResponse.results
+                    self?.products = products
                     self?.tableView.reloadData()
-                    self?.placeholderLabel.isHidden = !searchResponse.results.isEmpty
+                    self?.placeholderLabel.isHidden = !products.isEmpty
                 }
-            } catch {
-                print("Error al procesar los datos:", error.localizedDescription)
+            case .failure(let error):
+                print("Error al realizar la búsqueda:", error.localizedDescription)
             }
-        }.resume()
+        }
     }
-    
+
     // Métodos del protocolo UITableViewDataSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return products.count
