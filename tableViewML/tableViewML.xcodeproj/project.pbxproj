@@ -16,6 +16,7 @@
 		AC493C752BB1D97D008CFE3C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AC493C732BB1D97D008CFE3C /* LaunchScreen.storyboard */; };
 		AC493C802BB1D97D008CFE3C /* tableViewMLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC493C7F2BB1D97D008CFE3C /* tableViewMLTests.swift */; };
 		AC493C8B2BB1D97D008CFE3C /* tableViewMLUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC493C8A2BB1D97D008CFE3C /* tableViewMLUITests.swift */; };
+		AC493CE32BB32E5C008CFE3C /* ProductDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC493CE22BB32E5C008CFE3C /* ProductDetailViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +52,7 @@
 		AC493C862BB1D97D008CFE3C /* tableViewMLUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tableViewMLUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC493C8A2BB1D97D008CFE3C /* tableViewMLUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = tableViewMLUITests.swift; sourceTree = "<group>"; };
 		AC493C8C2BB1D97D008CFE3C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AC493CE22BB32E5C008CFE3C /* ProductDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductDetailViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,6 +137,7 @@
 			isa = PBXGroup;
 			children = (
 				AC493C692BB1D97A008CFE3C /* ViewController.swift */,
+				AC493CE22BB32E5C008CFE3C /* ProductDetailViewController.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -271,6 +274,7 @@
 			files = (
 				AC493C702BB1D97A008CFE3C /* tableViewML.xcdatamodeld in Sources */,
 				AC493C6A2BB1D97A008CFE3C /* ViewController.swift in Sources */,
+				AC493CE32BB32E5C008CFE3C /* ProductDetailViewController.swift in Sources */,
 				AC493C662BB1D97A008CFE3C /* AppDelegate.swift in Sources */,
 				AC493C682BB1D97A008CFE3C /* SceneDelegate.swift in Sources */,
 			);
