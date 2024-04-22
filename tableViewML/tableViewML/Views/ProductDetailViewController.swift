@@ -23,6 +23,9 @@ class ProductDetailViewController: UIViewController {
         
         // Configurar la vista
         
+        // Establecer el título en la barra de navegación
+        self.title = "Detalle del Producto"
+        
         // Configurar el color de fondo de la vista
         view.backgroundColor = .white
         
